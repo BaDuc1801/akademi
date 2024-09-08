@@ -6,51 +6,55 @@ import axios from 'axios';
 
 const AddNewStudent = () => {
     const [form] = Form.useForm();
-    const [valueRadio, setValueRadio] = useState(1); // Default value for the radio button
+    const [valueRadio, setValueRadio] = useState(1); 
     const [selectedImage, setSelectedImage] = useState(null);
     const [openModal, setOpenModal] = useState(false);
 
-    // Handle radio button change
     const onChangeRadio = (e) => {
         setValueRadio(e.target.value);
     };
 
-    // Handle file input change
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setSelectedImage(file); // Store the selected file in state
+            setSelectedImage(file); 
         }
     };
 
-    // Trigger the file input when the div is clicked
     const handleFileSelectClick = () => {
         document.getElementById('file-input').click();
     };
 
-    // Handle form submission
     const handleSubmit = async (values) => {
-        // Creating a FormData object to append form data and the file
-        // Open the confirmation modal
-        setOpenModal(true);
-        values.avatar = selectedImage.name;
-        let data = await axios.put("http://localhost:8080/students/update-student", values);
-        console.log('Submitted Data:', data);
-    };
+        try {
+            values.avatar = selectedImage.name;
+            let data = await axios.get("http://localhost:8080/students");
+            
+            const emailExists = data.data.some(student => student.email === values.email);
+    
+            if (!emailExists) {
+                alert("Email does not exist in the registered student list");
+                return;
+            }
+    
+            let response = await axios.put("http://localhost:8080/students/update-student", values);
+            setOpenModal(true);
+        } catch (error) {
+            console.error("Lỗi xảy ra:", error);
+        }
+    }
 
-    // Handle modal "Yes" button
     const handleOk = () => {
-        form.resetFields(); // Reset form to initial values
-        setSelectedImage(null); // Reset selected image
-        setValueRadio(1); // Reset radio button to default (Cash)
-        setOpenModal(false); // Close modal
+        form.resetFields(); 
+        setSelectedImage(null); 
+        setValueRadio(1); 
+        setOpenModal(false); 
     };
 
-    // Handle Cancel button to reset form
     const handleCancel = () => {
-        form.resetFields(); // Reset form to initial values
-        setSelectedImage(null); // Reset selected image
-        setValueRadio(1); // Reset radio button to default (Cash)
+        form.resetFields(); 
+        setSelectedImage(null); 
+        setValueRadio(1); 
     };
 
     return (
@@ -61,7 +65,7 @@ const AddNewStudent = () => {
                 onFinish={handleSubmit}
                 className="tc-add-std-detail"
                 initialValues={{
-                    payment: valueRadio, // Set default value for radio group
+                    payment: valueRadio,
                 }}
             >
                 <div className="tc-add-std-head">
@@ -219,17 +223,16 @@ const AddNewStudent = () => {
                 </div>
             </Form>
 
-            {/* Modal for confirmation */}
             <Modal
-                title={<span style={{color:'#3d32b8'}}>Form Submitted</span>}
+                title={<span style={{ color: '#3d32b8' }}>Form Submitted</span>}
                 open={openModal}
                 onOk={handleOk}
                 okButtonProps={{ style: { backgroundColor: '#4D44B5' } }}
                 okText="OK"
                 cancelButtonProps={{ style: { color: '#4D44B5' } }}
             >
-                <div style={{display: 'flex',alignItems: 'center', justifyContent: 'center', color:'#4D44B5',fontSize: 28, marginBottom: 20}}><FaCheckCircle  /></div>
-                <div style={{display: 'flex',alignItems: 'center', justifyContent: 'center', color:'#4D44B5',fontSize: 18}}><p>You have successfully submitted the form.</p></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4D44B5', fontSize: 28, marginBottom: 20 }}><FaCheckCircle /></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4D44B5', fontSize: 18 }}><p>You have successfully submitted the form.</p></div>
             </Modal>
         </>
     );

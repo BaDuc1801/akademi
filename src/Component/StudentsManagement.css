@@ -93,18 +93,26 @@
 }
 
 .tc-search-layout input{
-    width: 300px;
-    font-size: 20px;
+    width: 350px;
+    font-size: 18px;
     color: #4D44B5;
+    outline: none;
 }
 
 .tc-search-layout input::placeholder{
     color: #A098AE;
+    font-size: 18px;
 }
 
 .tc-search-layout input{
     border: none;
     outline: none;
+}
+
+.ant-input:focus,
+.ant-input-focused {
+    border-color: transparent !important; /* Bỏ màu viền khi focus */
+    box-shadow: none !important;          /* Bỏ hiệu ứng shadow khi focus */
 }
 
 .tc-add-std{
@@ -163,9 +171,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
-.tc-filter{
-    z-index: 5;
 }
 
 .tc-bg-timeline{
