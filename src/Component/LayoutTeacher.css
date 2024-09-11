@@ -91,3 +91,31 @@
 .tc-margin-outlet{
     margin: 30px 50px;
 }
+
+.tc-avatar-layout {
+    position: relative;
+    width: 50px; /* Tùy chỉnh kích thước */
+    height: 50px;
+    background-color: #f0f0f0; /* Tùy chỉnh màu sắc */
+    border-radius: 50%; /* Tạo hình tròn nếu đây là avatar */
+    cursor: pointer;
+  }
+  
+  .logout-button {
+    display: none;
+    position: absolute;
+    top: 51px;
+    right: 0;
+    background-color: #4D44B5;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100px;
+    text-align: center;
+  }
+  
+  .tc-avatar-layout:hover .logout-button {
+    display: block;
+  }
+  

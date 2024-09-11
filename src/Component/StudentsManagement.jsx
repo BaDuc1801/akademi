@@ -14,17 +14,19 @@ import { Option } from 'antd/es/mentions'
 
 const StudentsManagement = () => {
     const { setActiveItem } = useOutletContext();
-    const [refreshData, setRefreshData] = useState(false); 
+    const [refreshData, setRefreshData] = useState(false);
     const [students, setStudents] = useState([]);
-    const [isEditing, setIsEditing] = useState(false); 
-    const [editingStudent, setEditingStudent] = useState(null); 
-    const [searchStudentInput, setSearchStudentInput] = useState(''); 
+    const [isEditing, setIsEditing] = useState(false);
+    const [isContactModalVisible, setIsContactModalVisible] = useState(false);
+    const [editingStudent, setEditingStudent] = useState(null);
+    const [searchStudentInput, setSearchStudentInput] = useState('');
+    const [contact, setContact] = useState([]);
 
     useEffect(() => {
         const fetchStudents = async () => {
             try {
                 const response = await axios.get("http://localhost:8080/students");
-                setStudents(response.data);  
+                setStudents(response.data);
             } catch (error) {
                 console.error("Error fetching students:", error);
             }
@@ -34,7 +36,7 @@ const StudentsManagement = () => {
     }, [refreshData]);
 
     // input search
-    const filteredStudents = students.filter(student => 
+    const filteredStudents = students.filter(student =>
         student.studentName.toLowerCase().includes(searchStudentInput.toLowerCase())
     );
 
@@ -87,8 +89,14 @@ const StudentsManagement = () => {
         {
             title: <span style={{ color: '#303972' }}>Contact</span>,
             dataIndex: 'contact',
-            render: () => (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 15, fontSize: 20, color: '#4D44B5', cursor: 'pointer' }}>
+            render: (text, record) => (
+                <div
+                    onClick={() => {
+                        setIsContactModalVisible(true);
+                        callApiContact(record);
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 15, fontSize: 20, color: '#4D44B5', cursor: 'pointer' }}
+                >
                     <div className='tc-sss'><FiPhone /></div>
                     <div className='tc-sss'><TfiEmail /></div>
                 </div>
@@ -100,18 +108,18 @@ const StudentsManagement = () => {
             render: (text) => {
                 if (text === "VII A") {
                     return (
-                        <div style={{width: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#FB7D5B', padding: '10px 20px', borderRadius: 20 }}>
+                        <div style={{ width: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#FB7D5B', padding: '10px 20px', borderRadius: 20 }}>
                             <div>{text}</div>
                         </div>
                     )
                 } else if (text === "VII B") {
                     return (
-                        <div style={{width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#FCC43E', padding: '10px 20px', borderRadius: 20 }}>
+                        <div style={{ width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#FCC43E', padding: '10px 20px', borderRadius: 20 }}>
                             <div>{text}</div>
                         </div>)
                 } else {
                     return (
-                        <div style={{width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#4D44B5', padding: '10px 20px', borderRadius: 20 }}>
+                        <div style={{ width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', cursor: 'pointer', backgroundColor: '#4D44B5', padding: '10px 20px', borderRadius: 20 }}>
                             <div>{text}</div>
                         </div>)
                 }
@@ -123,10 +131,10 @@ const StudentsManagement = () => {
             align: 'right',
             render: (_, record) => {
                 return (
-                    <div style={{width: 50}}>
+                    <div style={{ width: 50 }}>
                         <CiEdit style={{ fontSize: 20, cursor: 'pointer', color: '#4D44B5' }} onClick={() => { onEditStudent(record) }} />
                         <MdDeleteOutline onClick={() => {
-                            onDelStudent(record)
+                            confirmDelete(record)
                         }} style={{ color: 'red', cursor: 'pointer', marginLeft: 10, fontSize: 20 }} />
                     </div>
                 )
@@ -144,7 +152,7 @@ const StudentsManagement = () => {
                     columns={columns}
                     dataSource={filteredStudents.filter(student => student.grade === "VII A")}
                     pagination={{ pageSize: 5 }}
-                    scroll={{ x: 1070 }} 
+                    scroll={{ x: 1070 }}
                 />
             ),
         },
@@ -157,7 +165,7 @@ const StudentsManagement = () => {
                     dataSource={filteredStudents.filter(student => student.grade === "VII B")}
                     pagination={{ pageSize: 5 }}
                     rowKey="id"
-                    scroll={{ x: 1070 }} 
+                    scroll={{ x: 1070 }}
                 />
             ),
         },
@@ -170,25 +178,72 @@ const StudentsManagement = () => {
                     dataSource={filteredStudents.filter(student => student.grade === "VII C")}
                     pagination={{ pageSize: 5 }}
                     rowKey="id"
-                    scroll={{ x: 1070 }} 
+                    scroll={{ x: 1070 }}
                 />
             ),
         },
     ];
 
-    const onEditStudent = (record) => {
+    const onEditStudent = async (record) => {
         setIsEditing(true);
         setEditingStudent({ ...record });
     };
+
+    const callApiContact = async (record) => {
+        let data = await axios.get("http://localhost:8080/students");
+        const student = data.data.find(student => student.studentID === record.studentID);
+        setContact({
+            phone: student.phone,
+            email: student.email,
+            parentPhone: student.parentPhone,
+            parentEmail: student.parentEmail
+        });
+    }
+
+    const confirmDelete = (record) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this student?',
+            content: `Student: ${record.studentName} (ID: ${record.studentID})`,
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            onOk: () => onDelStudent(record),  // Gọi hàm xóa nếu người dùng xác nhận
+        });
+    };
+
+    const onDelStudent = async (record) => {
+        try {
+            await axios.delete(`http://localhost:8080/students/delete-student/${record.studentID}`);
+            setRefreshData(prev => !prev);
+        } catch (error) {
+            console.error("Error deleting student:", error);
+        }
+        const timelineContent = `Teacher TC001 has deleted student ${record.studentID} - ${record.studentName}`;
+
+        await axios.post("http://localhost:8080/timeline", {
+            content: timelineContent,
+            date: new Date().toISOString(),
+            teacherID: "TC001",
+        });
+    };
+
 
     const handleSave = async () => {
         try {
             await axios.put(`http://localhost:8080/students/update-student/${editingStudent.studentID}`, editingStudent);
             setIsEditing(false);
             setRefreshData(prev => !prev);
+
         } catch (error) {
             console.error("Error updating student:", error);
         }
+        const timelineContent = `Teacher TC001 has edited student ${editingStudent.studentID} - ${editingStudent.studentName}`;
+
+        await axios.post("http://localhost:8080/timeline", {
+            content: timelineContent,
+            date: new Date().toISOString(),
+            teacherID: "TC001",
+        });
     };
 
     return (
@@ -199,9 +254,9 @@ const StudentsManagement = () => {
                     <Input
                         placeholder='Search here...'
                         value={searchStudentInput}
-                        onChange={(e) => setSearchStudentInput(e.target.value)} 
+                        onChange={(e) => setSearchStudentInput(e.target.value)}
                         style={{ width: 350 }}
-                        className=''
+                        className='tc-met-qua-r'
                     />
                 </div>
                 <div className='tc-sth-layout'>
@@ -212,7 +267,7 @@ const StudentsManagement = () => {
                     </div>
                 </div>
             </Row>
-            <Row style={{ marginTop: 40, backgroundColor: 'white', padding: "10px 20px", borderTopRightRadius: 20, borderTopLeftRadius: 20}}>
+            <Row style={{ marginTop: 40, backgroundColor: 'white', padding: "10px 20px", borderTopRightRadius: 20, borderTopLeftRadius: 20 }}>
                 <Tabs defaultActiveKey="1" items={itemsTab} />
             </Row>
 
@@ -220,7 +275,7 @@ const StudentsManagement = () => {
                 title="Edit Student"
                 open={isEditing}
                 onCancel={() => setIsEditing(false)}
-                onOk={handleSave} 
+                onOk={handleSave}
                 okButtonProps={{ style: { backgroundColor: '#4D44B5' } }}
             >
                 <p>Name:</p>
@@ -254,6 +309,19 @@ const StudentsManagement = () => {
                     <Option value="VII C">VII C</Option>
                 </Select>
             </Modal>
+            <Modal
+                title={<span style={{color: '#303972', fontSize: 18 }}>Contact Information</span>}
+                open={isContactModalVisible}
+                onCancel={() => setIsContactModalVisible(false)}
+                onOk={() => setIsContactModalVisible(false)}
+                okButtonProps={{ style: { backgroundColor: '#303972' } }}
+            >
+                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Phone: </strong> {contact.phone}</p>
+                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Email: </strong> {contact.email}</p>
+                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Parent Phone: </strong> {contact.parentPhone}</p>
+                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Parent Email: </strong> {contact.parentEmail}</p>
+            </Modal>
+
         </Col>
     )
 }

@@ -1,9 +1,12 @@
 import { Timeline } from 'antd';
-import React from 'react';
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 
 const groupTimelineItemsByDate = (items) => {
     const today = new Date().setHours(0, 0, 0, 0);
     const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).setHours(0, 0, 0, 0);
+
+    const sortedItems = items.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const groupedItems = {
         Today: [],
@@ -11,7 +14,7 @@ const groupTimelineItemsByDate = (items) => {
         Older: []
     };
 
-    items.forEach(item => {
+    sortedItems.forEach(item => {
         const itemDate = new Date(item.date).setHours(0, 0, 0, 0);
         if (itemDate === today) {
             groupedItems.Today.push(item);
@@ -25,13 +28,10 @@ const groupTimelineItemsByDate = (items) => {
     return groupedItems;
 };
 
-const timelineItems = [
-    { content: 'Create a services site', date: '2024-09-04' },
-    { content: 'Solve initial network problems', date: '2024-09-03' },
-    { content: 'Technical testing', date: '2024-09-01' },
-    { content: 'Network problems being solved', date: '2023-09-02' },
-    { content: 'Network problems being', date: '2024-09-04' },
-];
+const fetchTimelineItems = async () => {
+    const response = await axios.get("http://localhost:8080/timeline");
+    return response.data; 
+};
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -44,6 +44,16 @@ const formatDate = (dateString) => {
 };
 
 const TeacherTimeline = () => {
+    const [timelineItems, setTimelineItems] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await fetchTimelineItems();
+            setTimelineItems(data); 
+        };
+        fetchData();
+    }, []);
+
     const groupedItems = groupTimelineItemsByDate(timelineItems);
 
     return (
@@ -57,7 +67,7 @@ const TeacherTimeline = () => {
                         {groupedItems.Today.map((item, index) => (
                             <Timeline.Item key={index}>
                                 <p className='tc-bg-timeline-date'>{formatDate(item.date)}</p>
-                                <div style={{color:'#303972', fontWeight: 500, fontSize: 18}}>{item.content}</div>
+                                <div style={{color:'#303972', fontWeight: 500, fontSize: 16}}>{item.content}</div>
                             </Timeline.Item>
                         ))}
                     </>
@@ -71,7 +81,7 @@ const TeacherTimeline = () => {
                         {groupedItems.Yesterday.map((item, index) => (
                             <Timeline.Item key={index}>
                                 <p className='tc-bg-timeline-date'>{formatDate(item.date)}</p>
-                                <div style={{color:'#303972', fontWeight: 500, fontSize: 18}}>{item.content}</div>
+                                <div style={{color:'#303972', fontWeight: 500, fontSize: 16}}>{item.content}</div>
                             </Timeline.Item>
                         ))}
                     </>
@@ -85,7 +95,7 @@ const TeacherTimeline = () => {
                         {groupedItems.Older.map((item, index) => (
                             <Timeline.Item key={index}>
                                 <p className='tc-bg-timeline-date'>{formatDate(item.date)}</p>
-                                <div style={{color:'#303972', fontWeight: 500, fontSize: 18}}>{item.content}</div>
+                                <div style={{color:'#303972', fontWeight: 500, fontSize: 16}}>{item.content}</div>
                             </Timeline.Item>
                         ))}
                     </>

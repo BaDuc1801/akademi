@@ -109,8 +109,7 @@
     outline: none;
 }
 
-.ant-input:focus,
-.ant-input-focused {
+.tc-met-qua-r {
     border-color: transparent !important; /* Bỏ màu viền khi focus */
     box-shadow: none !important;          /* Bỏ hiệu ứng shadow khi focus */
 }

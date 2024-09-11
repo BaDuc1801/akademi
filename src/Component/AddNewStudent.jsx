@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import './AddNewStudent.css';
-import { Radio, Modal, Form, Input, Button, message } from 'antd';
+import { Radio, Modal, Form, Input, Button } from 'antd';
 import { FaCheckCircle } from 'react-icons/fa';
 import axios from 'axios';
 
 const AddNewStudent = () => {
     const [form] = Form.useForm();
-    const [valueRadio, setValueRadio] = useState(1); 
+    const [valueRadio, setValueRadio] = useState(1);
     const [selectedImage, setSelectedImage] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
 
     const onChangeRadio = (e) => {
         setValueRadio(e.target.value);
@@ -18,6 +19,7 @@ const AddNewStudent = () => {
         const file = e.target.files[0];
         if (file) {
             setSelectedImage(file); 
+            setImagePreview(URL.createObjectURL(file))
         }
     };
 
@@ -38,23 +40,36 @@ const AddNewStudent = () => {
             }
     
             let response = await axios.put("http://localhost:8080/students/update-student", values);
+    
+            const student = data.data.find(student => student.email === values.email);
+            const timelineContent = `Teacher TC001 has updated the information of student ${student.studentID} - ${values.studentName}`;
+            
+            await axios.post("http://localhost:8080/timeline", {
+                content: timelineContent,
+                date: new Date().toISOString(),
+                teacherID: "TC001",
+            });
+    
             setOpenModal(true);
         } catch (error) {
-            console.error("Lỗi xảy ra:", error);
+            console.error("Error:", error);
         }
-    }
+    };
+    
 
     const handleOk = () => {
-        form.resetFields(); 
-        setSelectedImage(null); 
-        setValueRadio(1); 
-        setOpenModal(false); 
+        form.resetFields();
+        setSelectedImage(null);
+        setValueRadio(1);
+        setOpenModal(false);
+        setImagePreview(null);
     };
 
     const handleCancel = () => {
-        form.resetFields(); 
-        setSelectedImage(null); 
-        setValueRadio(1); 
+        form.resetFields();
+        setSelectedImage(null);
+        setImagePreview(null);
+        setValueRadio(1);
     };
 
     return (
@@ -76,16 +91,16 @@ const AddNewStudent = () => {
                         <td rowSpan={2} style={{ verticalAlign: 'top', width: 180, paddingRight: 40 }}>
                             <p>Photo</p>
                             <div className="tc-add-photo" onClick={handleFileSelectClick}>
-                                {selectedImage ? (
-                                    <p>{selectedImage.name}</p>
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Selected" style={{ width: '100%', height: '100%' }} />
                                 ) : (
                                     <p>Drag and drop or click here to select file</p>
                                 )}
                             </div>
                             <input
                                 type="file"
-                                id="file-input"
                                 style={{ display: 'none' }}
+                                id="file-input"
                                 accept="image/*"
                                 onChange={handleFileChange}
                             />
@@ -142,7 +157,7 @@ const AddNewStudent = () => {
                         </td>
                         <td>
                             <Form.Item
-                                name="studentPhone"
+                                name="phone"
                                 label={<p style={{ color: '#303972', fontSize: 18 }}>Student Phone</p>}
                                 rules={[{ required: true, message: 'Please input student phone number!' }]}
                             >

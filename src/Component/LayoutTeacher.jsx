@@ -56,7 +56,7 @@ const LayoutTeacher = () => {
             </li>
             <li className={activeItem === 'Grades' ? 'active' : ''} onClick={() => handleItemClick('Grades')}>
               <Link className='link' to='/grades'>
-                <span className='icon'><TfiMarkerAlt  /></span>
+                <span className='icon'><TfiMarkerAlt /></span>
                 <span className='title'>Grades</span>
               </Link>
             </li>
@@ -104,11 +104,15 @@ const LayoutTeacher = () => {
                 <p className='tc-name-layout'>Teacher's name</p>
                 <p className='tc-role-layout'>Teacher</p>
               </div>
-              <div className='tc-avatar-layout'></div>
+              <div className="tc-avatar-layout">
+                <div className="logout-button">
+                  Đăng xuất
+                </div>
+              </div>
             </div>
           </div>
         </Row>
-        <Outlet context={{ setActiveItem }}/>
+        <Outlet context={{ setActiveItem }} />
       </Col>
     </Row>
   )
