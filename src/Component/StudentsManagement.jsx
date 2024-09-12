@@ -35,7 +35,6 @@ const StudentsManagement = () => {
         fetchStudents();
     }, [refreshData]);
 
-    // input search
     const filteredStudents = students.filter(student =>
         student.studentName.toLowerCase().includes(searchStudentInput.toLowerCase())
     );

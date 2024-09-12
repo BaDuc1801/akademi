@@ -42,7 +42,9 @@ const AddNewStudent = () => {
             let response = await axios.put("http://localhost:8080/students/update-student", values);
     
             const student = data.data.find(student => student.email === values.email);
-            const timelineContent = `Teacher TC001 has updated the information of student ${student.studentID} - ${values.studentName}`;
+            const timelineContent = `Teacher TC001 has updated the information of new student ${student.studentID} - ${values.studentName}`;
+
+            await axios.post("http://localhost:8080/marks", {studentID: student.studentID});
             
             await axios.post("http://localhost:8080/timeline", {
                 content: timelineContent,

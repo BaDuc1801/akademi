@@ -35,13 +35,24 @@ const fetchTimelineItems = async () => {
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+
+    const formattedDate = date.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
     });
+
+    const formattedTime = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false 
+    });
+
+    return `${formattedDate} ${formattedTime}`;
 };
+
 
 const TeacherTimeline = () => {
     const [timelineItems, setTimelineItems] = useState([]);

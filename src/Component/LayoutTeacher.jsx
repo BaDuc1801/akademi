@@ -31,7 +31,7 @@ const LayoutTeacher = () => {
         <div className='navigation'>
           <ul>
             <li className={activeItem === 'Dashboard' ? 'active' : ''} onClick={() => handleItemClick('Dashboard')}>
-              <Link className='link' to='/dashboard'>
+              <Link className='link' to='/'>
                 <span className='icon'><IoHomeOutline /></span>
                 <span className='title'>Dashboard</span>
               </Link>
@@ -49,7 +49,7 @@ const LayoutTeacher = () => {
               </Link>
             </li>
             <li className={activeItem === 'Event' ? 'active' : ''} onClick={() => handleItemClick('Event')}>
-              <Link className='link' to='/'>
+              <Link className='link' to='/event'>
                 <span className='icon'><BsCalendar4Event /></span>
                 <span className='title'>Event</span>
               </Link>
@@ -60,22 +60,10 @@ const LayoutTeacher = () => {
                 <span className='title'>Grades</span>
               </Link>
             </li>
-            <li className={activeItem === 'Food' ? 'active' : ''} onClick={() => handleItemClick('Food')}>
-              <Link className='link' to='/'>
-                <span className='icon'><PiForkKnife /></span>
-                <span className='title'>Food</span>
-              </Link>
-            </li>
             <li className={activeItem === 'User' ? 'active' : ''} onClick={() => handleItemClick('User')}>
-              <Link className='link' to='/'>
+              <Link className='link' to='/userTeacher'>
                 <span className='icon'><FaRegUser /></span>
                 <span className='title'>User</span>
-              </Link>
-            </li>
-            <li className={activeItem === 'Chat' ? 'active' : ''} onClick={() => handleItemClick('Chat')}>
-              <Link className='link' to='/'>
-                <span className='icon'><HiOutlineChatAlt2 /></span>
-                <span className='title'>Chat</span>
               </Link>
             </li>
             <li className={activeItem === 'Latest Activity' ? 'active' : ''} onClick={() => handleItemClick('Latest Activity')}>
