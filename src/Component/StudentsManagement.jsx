@@ -21,6 +21,7 @@ const StudentsManagement = () => {
     const [editingStudent, setEditingStudent] = useState(null);
     const [searchStudentInput, setSearchStudentInput] = useState('');
     const [contact, setContact] = useState([]);
+    const [user, setUser] = useState({grades: []});
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -31,7 +32,8 @@ const StudentsManagement = () => {
                 console.error("Error fetching students:", error);
             }
         };
-
+        const user = JSON.parse(localStorage.getItem('user'));
+        setUser(user);
         fetchStudents();
     }, [refreshData]);
 
@@ -141,47 +143,20 @@ const StudentsManagement = () => {
         },
     ];
 
-    const itemsTab = [
-        {
-            key: '1',
-            label: 'VII A',
-            children: (
-                <Table
-                    style={{ width: '100%' }}
-                    columns={columns}
-                    dataSource={filteredStudents.filter(student => student.grade === "VII A")}
-                    pagination={{ pageSize: 5 }}
-                    scroll={{ x: 1070 }}
-                />
-            ),
-        },
-        {
-            key: '2',
-            label: 'VII B',
-            children: (
-                <Table
-                    columns={columns}
-                    dataSource={filteredStudents.filter(student => student.grade === "VII B")}
-                    pagination={{ pageSize: 5 }}
-                    rowKey="id"
-                    scroll={{ x: 1070 }}
-                />
-            ),
-        },
-        {
-            key: '3',
-            label: 'VII C',
-            children: (
-                <Table
-                    columns={columns}
-                    dataSource={filteredStudents.filter(student => student.grade === "VII C")}
-                    pagination={{ pageSize: 5 }}
-                    rowKey="id"
-                    scroll={{ x: 1070 }}
-                />
-            ),
-        },
-    ];
+    const itemsTab = user.grades.map((grade, index) => ({
+        key: (index + 1).toString(),
+        label: grade,
+        children: (
+            <Table
+                columns={columns}
+                dataSource={filteredStudents.filter(student => student.grade === grade)}
+                pagination={{ pageSize: 5 }}
+                rowKey="id"
+                scroll={{ x: 1070 }}
+            />
+        ),
+    }));
+
 
     const onEditStudent = async (record) => {
         setIsEditing(true);
@@ -206,7 +181,7 @@ const StudentsManagement = () => {
             okText: 'Yes',
             okType: 'danger',
             cancelText: 'No',
-            onOk: () => onDelStudent(record),  // Gọi hàm xóa nếu người dùng xác nhận
+            onOk: () => onDelStudent(record),
         });
     };
 
@@ -260,7 +235,7 @@ const StudentsManagement = () => {
                 </div>
                 <div className='tc-sth-layout'>
                     <div className='tc-add-std'>
-                        <Link className='tc-link' to='/students/add' onClick={() => {
+                        <Link className='tc-link' to='add' onClick={() => {
                             setActiveItem('Add New Student')
                         }}><FaPlus /><span className='gap-plus'>New Student</span></Link>
                     </div>
@@ -300,7 +275,7 @@ const StudentsManagement = () => {
                 <p>Grade:</p>
                 <Select
                     value={editingStudent?.grade}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%'}}
                     onChange={(value) => setEditingStudent({ ...editingStudent, grade: value })}
                 >
                     <Option value="VII A">VII A</Option>
@@ -309,16 +284,16 @@ const StudentsManagement = () => {
                 </Select>
             </Modal>
             <Modal
-                title={<span style={{color: '#303972', fontSize: 18 }}>Contact Information</span>}
+                title={<span style={{ color: '#303972', fontSize: 18 }}>Contact Information</span>}
                 open={isContactModalVisible}
                 onCancel={() => setIsContactModalVisible(false)}
                 onOk={() => setIsContactModalVisible(false)}
                 okButtonProps={{ style: { backgroundColor: '#303972' } }}
             >
-                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Phone: </strong> {contact.phone}</p>
-                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Email: </strong> {contact.email}</p>
-                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Parent Phone: </strong> {contact.parentPhone}</p>
-                <p style={{fontSize: 16 }}><strong style={{color: '#303972' }}>Parent Email: </strong> {contact.parentEmail}</p>
+                <p style={{ fontSize: 16 }}><strong style={{ color: '#303972' }}>Phone: </strong> {contact.phone}</p>
+                <p style={{ fontSize: 16 }}><strong style={{ color: '#303972' }}>Email: </strong> {contact.email}</p>
+                <p style={{ fontSize: 16 }}><strong style={{ color: '#303972' }}>Parent Phone: </strong> {contact.parentPhone}</p>
+                <p style={{ fontSize: 16 }}><strong style={{ color: '#303972' }}>Parent Email: </strong> {contact.parentEmail}</p>
             </Modal>
 
         </Col>

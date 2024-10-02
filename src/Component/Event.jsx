@@ -16,7 +16,8 @@ const Event = () => {
     const [events, setEvents] = useState({});
     const [selectedDate, setSelectedDate] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
-
+    const user = JSON.parse(localStorage.getItem('user'));
+  
     useEffect(() => {
         const fetchEvents = async () => {
             try {
@@ -40,7 +41,7 @@ const Event = () => {
             }
         };
         fetchEvents();
-    }, [events]);     
+    }, []);     
 
     const monthCellRender = (value) => {
         const listData = getMonthData(value, events);
@@ -98,22 +99,23 @@ const Event = () => {
 
     const handleOk = async (values) => {
         const formattedDate = selectedDate.format('YYYY-MM-DD');
+        const user = JSON.parse(localStorage.getItem('user'));
+
         const event = {
             grade: values.type,
             content: values.content,
-            teacherID: "TC001", 
+            teacherID: user.teacherID, 
             date: formattedDate,
         };
 
         try {
             const response = await axios.post('http://localhost:8080/notifications', event);
-
-            const timelineContent = `Teacher TC001 added an event to grade ${values.type}'s dashboard`;
+            const timelineContent = `Teacher ${user.teacherID} added an event to grade ${values.type}'s dashboard`;
             
             await axios.post("http://localhost:8080/timeline", {
                 content: timelineContent,
                 date: new Date().toISOString(),
-                teacherID: "TC001",
+                teacherID: user.teacherID,
             });
             if (response.status === 200) {
                 const newEvents = [...(events[formattedDate] || []), event];
@@ -124,6 +126,7 @@ const Event = () => {
                 setIsModalVisible(false);
                 setSelectedDate(null);
             }
+            navigator()
         } catch (error) {
             console.error('Error:', error);
         }
@@ -156,14 +159,16 @@ const Event = () => {
                         label="To Grade"
                         rules={[{ required: true, message: 'Please select grade!' }]}
                     >
-                        <Select
-                            
-                            style={{ width: '100%' }}
-                        >
-                            <Option value="VII A">VII A</Option>
-                            <Option value="VII B">VII B</Option>
-                            <Option value="VII C">VII C</Option>
-                        </Select>
+                            <Select
+                                
+                                style={{ width: '100%' }}
+                            >
+                                {user.grades.map(grade => (
+                                <Option key={grade} value={grade}>
+                                    {grade}
+                                </Option>
+                            ))}
+                            </Select>
                     </Form.Item>
                     <Form.Item
                         name="content"

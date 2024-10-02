@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './AddNewStudent.css';
-import { Radio, Modal, Form, Input, Button } from 'antd';
+import { Radio, Modal, Form, Input, Button, Select } from 'antd';
 import { FaCheckCircle } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -18,7 +18,7 @@ const AddNewStudent = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setSelectedImage(file); 
+            setSelectedImage(file);
             setImagePreview(URL.createObjectURL(file))
         }
     };
@@ -29,35 +29,36 @@ const AddNewStudent = () => {
 
     const handleSubmit = async (values) => {
         try {
-            values.avatar = selectedImage.name;
-            let data = await axios.get("http://localhost:8080/students");
-            
-            const emailExists = data.data.some(student => student.email === values.email);
-    
-            if (!emailExists) {
-                alert("Email does not exist in the registered student list");
-                return;
-            }
-    
-            let response = await axios.put("http://localhost:8080/students/update-student", values);
-    
-            const student = data.data.find(student => student.email === values.email);
-            const timelineContent = `Teacher TC001 has updated the information of new student ${student.studentID} - ${values.studentName}`;
+            const user = JSON.parse(localStorage.getItem('user'));
+            let formData = new FormData();
+            formData.append('avatar', selectedImage);
+            const { studentName, email, password, ...updateValues } = values;            
+            await axios.post("http://localhost:8080/students/register", {
+                studentName,
+                email,
+                password,
+            });
 
-            await axios.post("http://localhost:8080/marks", {studentID: student.studentID});
-            
+            await axios.put("http://localhost:8080/students/update-student", { ...updateValues, email });
+
+            await axios.put('http://localhost:8080/students/update-student-avatar?email=' + values.email, formData);
+            let data = await axios.get("http://localhost:8080/students");
+            const student = data.data.find(student => student.email === values.email);
+            const timelineContent = `Teacher ${user.teacherID} has added new student ${student.studentID} - ${values.studentName}`;
+
+            await axios.post("http://localhost:8080/marks", { studentID: student.studentID });
+
             await axios.post("http://localhost:8080/timeline", {
                 content: timelineContent,
                 date: new Date().toISOString(),
-                teacherID: "TC001",
+                teacherID: user.teacherID,
             });
-    
+
             setOpenModal(true);
         } catch (error) {
             console.error("Error:", error);
         }
     };
-    
 
     const handleOk = () => {
         form.resetFields();
@@ -122,7 +123,11 @@ const AddNewStudent = () => {
                                 label={<p style={{ color: '#303972', fontSize: 18 }}>Grade</p>}
                                 rules={[{ required: true, message: 'Please input grade!' }]}
                             >
-                                <Input placeholder="VII A" />
+                                <Select placeholder="Select grade" style={{ marginTop: 10 }}>
+                                    <Option value="VII A">VII A</Option>
+                                    <Option value="VII B">VII B</Option>
+                                    <Option value="VII C">VII C</Option>
+                                </Select>
                             </Form.Item>
                         </td>
                     </tr>
@@ -159,11 +164,11 @@ const AddNewStudent = () => {
                         </td>
                         <td>
                             <Form.Item
-                                name="phone"
-                                label={<p style={{ color: '#303972', fontSize: 18 }}>Student Phone</p>}
-                                rules={[{ required: true, message: 'Please input student phone number!' }]}
+                                name="password"
+                                label={<p style={{ color: '#303972', fontSize: 18 }}>Password</p>}
+                                rules={[{ required: true, message: 'Please input student password!' }]}
                             >
-                                <Input placeholder="+1234567890" />
+                                <Input placeholder="*****" />
                             </Form.Item>
                         </td>
                     </tr>
@@ -178,7 +183,15 @@ const AddNewStudent = () => {
                                 <Input.TextArea placeholder="Enter your address here" />
                             </Form.Item>
                         </td>
-                        <td></td>
+                        <td>
+                            <Form.Item
+                                name="phone"
+                                label={<p style={{ color: '#303972', fontSize: 18 }}>Student Phone</p>}
+                                rules={[{ required: true, message: 'Please input student phone number!' }]}
+                            >
+                                <Input placeholder="+1234567890" />
+                            </Form.Item>
+                        </td>
                     </tr>
                 </table>
 

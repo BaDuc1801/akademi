@@ -9,9 +9,13 @@ const StudentGrades = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
     const [refreshData, setRefreshData] = useState(false);
+    const [user, setUser] = useState({ grades: [] });
 
     useEffect(() => {
         const fetchData = async () => {
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            setUser(storedUser);
+
             try {
                 const studentsData = await axios.get('http://localhost:8080/students');
                 const marksData = await axios.get('http://localhost:8080/marks');
@@ -33,31 +37,22 @@ const StudentGrades = () => {
         fetchData();
     }, [refreshData]);
 
-    const studentGradeA = data.filter(student => student.grade === 'VII A');
-    const studentGradeB = data.filter(student => student.grade === 'VII B');
-    const studentGradeC = data.filter(student => student.grade === 'VII C');
-
-    const calculateAverage = (student) => {
-        const subjects = ['chinese', 'math', 'english', 'science', 'history', 'geography'];
-        const validMarks = subjects.map(subject => parseFloat(student[subject]) || 0);        
-        const total = validMarks.reduce((sum, mark) => sum + mark, 0);
-        return (total / validMarks.length).toFixed(2);
-    };
+    const validStudents = (grade) => data.filter(student => student.grade === grade);
 
     const columns = [
         {
             title: <span style={{ color: '#303972' }}>Name</span>,
             dataIndex: 'studentName',
-            render: (_,reocord) => (
+            render: (_, record) => (
                 <div style={{ width: 150, color: '#303972', fontSize: 16, fontWeight: 700 }}>
-                    {reocord.studentName}
+                    {record.studentName}
                 </div>
             )
         },
         {
             title: <span style={{ color: '#303972' }}>Student ID</span>,
             dataIndex: 'studentID',
-            render: (_,record) => (
+            render: (_, record) => (
                 <div style={{ width: 60, color: '#303972', fontSize: 16, fontWeight: 700 }}>
                     {record.studentID}
                 </div>
@@ -111,6 +106,13 @@ const StudentGrades = () => {
         },
     ];
 
+    const calculateAverage = (student) => {
+        const subjects = ['chinese', 'math', 'english', 'science', 'history', 'geography'];
+        const validMarks = subjects.map(subject => parseFloat(student[subject]) || 0);        
+        const total = validMarks.reduce((sum, mark) => sum + mark, 0);
+        return (total / validMarks.length).toFixed(2);
+    };
+
     const onEditStudent = (record) => {
         setIsEditing(true);
         setEditingStudent({ ...record });
@@ -123,25 +125,26 @@ const StudentGrades = () => {
 
     const handleOk = async () => {
         try {
+            const user = JSON.parse(localStorage.getItem('user'));
+
             await axios.put(`http://localhost:8080/marks/update-mark/${editingStudent.studentID}`, editingStudent);
             
-            const timelineContent = `Teacher TC001 has edited mark of student ${editingStudent.studentID} - ${editingStudent.studentName}`;
+            const timelineContent = `Teacher ${user.teacherID} has edited mark of student ${editingStudent.studentID} - ${editingStudent.studentName}`;
 
             await axios.post("http://localhost:8080/timeline", {
                 content: timelineContent,
                 date: new Date().toISOString(),
-                teacherID: "TC001",
+                teacherID: user.teacherID,
             });
-                setData(prevData => prevData.map(student => 
+            setData(prevData => prevData.map(student => 
                 student.studentID === editingStudent.studentID ? { ...editingStudent } : student
             ));
-            } catch (error) {
+        } catch (error) {
             console.error("Error updating student:", error);
         }
         setIsEditing(false);
     };
     
-
     const handleInputChange = (subject) => (e) => {
         const value = parseFloat(e.target.value) || 0;
         setEditingStudent(prev => ({
@@ -150,48 +153,22 @@ const StudentGrades = () => {
         }));
     };
 
-    const items = [
-        {
-            key: '1',
-            label: 'VII A',
-            children: (
-                <Table
-                    columns={columns}
-                    dataSource={studentGradeA}
-                    pagination={{ pageSize: 5 }}
-                    rowKey="_id"
-                />
-            ),
-        },
-        {
-            key: '2',
-            label: 'VII B',
-            children: (
-                <Table
-                    columns={columns}
-                    dataSource={studentGradeB}
-                    pagination={{ pageSize: 5 }}
-                    rowKey="_id"
-                />
-            ),
-        },
-        {
-            key: '3',
-            label: 'VII C',
-            children: (
-                <Table
-                    columns={columns}
-                    dataSource={studentGradeC}
-                    pagination={{ pageSize: 5 }}
-                    rowKey="_id"
-                />
-            ),
-        },
-    ];
+    const items = user.grades.map(grade => ({
+        key: grade,
+        label: grade,
+        children: (
+            <Table
+                columns={columns}
+                dataSource={validStudents(grade)}
+                pagination={{ pageSize: 5 }}
+                rowKey="_id"
+            />
+        ),
+    }));
 
     return (
         <div className='tc-grade-all'>
-            <Tabs defaultActiveKey="1" items={items} />
+            <Tabs defaultActiveKey={user.grades[0]} items={items} />
             <Modal
                 title={<span style={{ color: "#303972" }}>Edit Student</span>}
                 open={isEditing}
@@ -200,42 +177,17 @@ const StudentGrades = () => {
                 onCancel={resetEditing}
                 onOk={handleOk}
             >
-                <p style={{ color: '#4D44B5' }}>Chinese:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.chinese || ''}
-                    onChange={handleInputChange('chinese')}
-                />
-                <p style={{ marginTop: 10, color: '#4D44B5' }}>Math:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.math || ''}
-                    onChange={handleInputChange('math')}
-                />
-                <p style={{ marginTop: 10, color: '#4D44B5' }}>English:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.english || ''}
-                    onChange={handleInputChange('english')}
-                />
-                <p style={{ marginTop: 10, color: '#4D44B5' }}>Science:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.science || ''}
-                    onChange={handleInputChange('science')}
-                />
-                <p style={{ marginTop: 10, color: '#4D44B5' }}>History:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.history || ''}
-                    onChange={handleInputChange('history')}
-                />
-                <p style={{ marginTop: 10, color: '#4D44B5' }}>Geography:</p>
-                <Input
-                    style={{ color: '#303972' }}
-                    value={editingStudent?.geography || ''}
-                    onChange={handleInputChange('geography')}
-                />
+                {['chinese', 'math', 'english', 'science', 'history', 'geography'].map(subject => (
+                    <div key={subject}>
+                        <p style={{ color: '#4D44B5' }}>{subject.charAt(0).toUpperCase() + subject.slice(1)}:</p>
+                        <Input
+                            disabled={user.subject !== subject}
+                            style={{ color: '#303972' }}
+                            value={editingStudent?.[subject] || ''}
+                            onChange={handleInputChange(subject)}
+                        />
+                    </div>
+                ))}
             </Modal>
         </div>
     );

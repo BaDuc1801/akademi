@@ -8,17 +8,21 @@ import Event from './Component/Event.jsx'
 import TeacherTimeline from './Component/TeacherTimeline.jsx'
 import StudentGrades from './Component/StudentGrades.jsx'
 import UserTeacher from './Component/UserTeacher.jsx'
+import Login from './Component/Login.jsx'
+import Dashboard from './Component/Dashboard.jsx'
 
 function App() {
   return (
     <Routes>
-      <Route path='/' element={<LayoutTeacher />}>
-        <Route path='/event' element={<Event />} />
-        <Route path='/students' element={<StudentsManagement />} />
-        <Route path='/students/add' element={<AddNewStudent />} />
-        <Route path='/latest-activity' element={<TeacherTimeline />} />
-        <Route path='/grades' element={<StudentGrades />} />
-        <Route path='/userTeacher' element={<UserTeacher />} />
+      <Route path='/' element={<Login />}/>
+      <Route path='/u' element={<LayoutTeacher />}>
+        <Route path='dashboard' element={<Dashboard/>}/>
+        <Route path='event' element={<Event />} />
+        <Route path='students' element={<StudentsManagement />} />
+        <Route path='students/add' element={<AddNewStudent />} />
+        <Route path='latest-activity' element={<TeacherTimeline />} />
+        <Route path='grades' element={<StudentGrades />} />
+        <Route path='userTeacher' element={<UserTeacher />} />
       </Route>
     </Routes>
   )
